@@ -1,0 +1,6 @@
+{
+  "name": "Alvin Agent AI",
+  "description": "Système ERP complet et Tour de Contrôle IA pour une firme agro-industrielle à Lubumbashi, RDC.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

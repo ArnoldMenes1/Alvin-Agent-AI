@@ -1,0 +1,427 @@
+{
+  "users": [
+    {
+      "name": "Jean Kabamba",
+      "role": "admin",
+      "email": "jean.kabamba@alvinagro.com",
+      "password": "alvinrh2026"
+    },
+    {
+      "name": "Marc Mwamba",
+      "role": "stocks",
+      "email": "marc.mwamba@alvinagro.com",
+      "password": "alvinstock2026"
+    },
+    {
+      "name": "Aminata Tshibola",
+      "role": "technical",
+      "email": "aminata.tshibola@alvinagro.com",
+      "password": "alvintech2026"
+    },
+    {
+      "name": "Sarah Mwaza",
+      "role": "commercial",
+      "email": "sarah.mwaza@alvinagro.com",
+      "password": "alvinsales2026"
+    },
+    {
+      "name": "Directeur Général (DG)",
+      "role": "manager",
+      "email": "manager@alvinagro.com",
+      "password": "alvinmanager2026"
+    },
+    {
+      "name": "Directeur Général (DG)",
+      "role": "manager",
+      "email": "menesmva@gmail.com",
+      "password": "alvinmanager2026"
+    },
+    {
+      "email": "jacobtherden@gmail.com",
+      "password": "azerty@2007",
+      "role": "technical",
+      "name": "Jacob Therden"
+    }
+  ],
+  "alerts": [
+    {
+      "id": "ALT-001",
+      "text": "RUPTURE CRITIQUE PRÉVUE : Le stock actuel de sacs (1,500 pcs) ne couvre que 10 jours de production sous le rythme actuel de broyage (150 sacs/jour).",
+      "status": "unread",
+      "product": "Sacs d'emballage vides 25kg (Farine)",
+      "threshold": 2250,
+      "timestamp": "2026-05-26T08:00:00Z",
+      "currentLevel": 1500
+    },
+    {
+      "id": "ALT-002",
+      "text": "ALERTE INTRANT AGRICOLE : Le stock d'engrais NPK est tombé à 3.8 tonnes (seuil d'alerte : 5.0 tonnes) à l'approche du début de la prochaine récolte.",
+      "status": "unread",
+      "product": "Engrais NPK 15-15-15",
+      "threshold": 5,
+      "timestamp": "2026-05-26T08:30:00Z",
+      "currentLevel": 3.8
+    }
+  ],
+  "stocks": {
+    "consumables": [
+      {
+        "id": "CO-001",
+        "name": "Sacs d'emballage vides 25kg (Farine)",
+        "unit": "pièces",
+        "quantity": 1500,
+        "threshold": 2000
+      },
+      {
+        "id": "CO-002",
+        "name": "Bouteilles plastiques vides 1L",
+        "unit": "pièces",
+        "quantity": 6200,
+        "threshold": 3000
+      },
+      {
+        "id": "CO-003",
+        "name": "Engrais NPK 15-15-15",
+        "unit": "tonnes",
+        "quantity": 3.8,
+        "threshold": 5
+      },
+      {
+        "id": "CO-004",
+        "name": "Pesticide de culture Maïs",
+        "unit": "litres",
+        "quantity": 450,
+        "threshold": 500
+      }
+    ],
+    "rawMaterials": [
+      {
+        "id": "RM-001",
+        "name": "Maïs Brut d'Uvira (Champs)",
+        "unit": "tonnes",
+        "tonnage": 145.5
+      },
+      {
+        "id": "RM-002",
+        "name": "Graine de Soja (Champs)",
+        "unit": "tonnes",
+        "tonnage": 58.2
+      }
+    ],
+    "finishedProducts": [
+      {
+        "id": "FP-001",
+        "name": "Farine de Maïs Tamisée Premium (Sacs 25kg)",
+        "unit": "cartons/sacs",
+        "quantity": 1820
+      },
+      {
+        "id": "FP-002",
+        "name": "Huile de Soja Pure Raffinée (Bouteilles 1L)",
+        "unit": "bouteilles",
+        "quantity": 420
+      }
+    ]
+  },
+  "employees": [
+    {
+      "id": "EMP-001",
+      "name": "Jean Kabamba",
+      "role": "Administratif/RH - Chef des Équipes Agricoles",
+      "email": "jean.kabamba@alvinagro.com",
+      "phone": "+243 812 345 678",
+      "photo": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=300&auto=format&fit=crop",
+      "salary": "450",
+      "status": "Présent",
+      "attendance": [
+        "2026-05-20",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-23",
+        "2026-05-25",
+        "2026-05-26"
+      ],
+      "salaryHistory": [
+        {
+          "date": "2026-04-30",
+          "amount": 450,
+          "status": "Payé"
+        },
+        {
+          "date": "2026-03-31",
+          "amount": 450,
+          "status": "Payé"
+        }
+      ]
+    },
+    {
+      "id": "EMP-002",
+      "name": "Aminata Tshibola",
+      "role": "Technique - Opératrice de Ligne d'Huilerie",
+      "email": "aminata.tshibola@alvinagro.com",
+      "phone": "+243 824 987 654",
+      "photo": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=300&auto=format&fit=crop",
+      "salary": "500",
+      "status": "Présent",
+      "attendance": [
+        "2026-05-20",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-25",
+        "2026-05-26"
+      ],
+      "salaryHistory": [
+        {
+          "date": "2026-04-30",
+          "amount": 500,
+          "status": "Payé"
+        },
+        {
+          "date": "2026-03-31",
+          "amount": 500,
+          "status": "Payé"
+        }
+      ]
+    },
+    {
+      "id": "EMP-003",
+      "name": "Marc Mwamba",
+      "role": "Logistique & Stocks - Chef de Dépôt",
+      "email": "marc.mwamba@alvinagro.com",
+      "phone": "+243 897 123 456",
+      "photo": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=300&auto=format&fit=crop",
+      "salary": "600",
+      "status": "Présent",
+      "attendance": [
+        "2026-05-20",
+        "2026-05-21",
+        "2026-05-22",
+        "2026-05-23",
+        "2026-05-25",
+        "2026-05-26"
+      ],
+      "salaryHistory": [
+        {
+          "date": "2026-04-30",
+          "amount": 600,
+          "status": "Payé"
+        },
+        {
+          "date": "2026-03-31",
+          "amount": 600,
+          "status": "Payé"
+        }
+      ]
+    },
+    {
+      "id": "EMP-004",
+      "name": "Sarah Mwaza",
+      "role": "Commercial - Acheteuse et Négociatrice",
+      "email": "sarah.mwaza@alvinagro.com",
+      "phone": "+243 999 888 777",
+      "photo": "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?q=80&w=300&auto=format&fit=crop",
+      "salary": "550",
+      "status": "Présent",
+      "attendance": [
+        "2026-05-20",
+        "2026-05-22",
+        "2026-05-25",
+        "2026-05-26"
+      ],
+      "salaryHistory": [
+        {
+          "date": "2026-04-30",
+          "amount": 550,
+          "status": "Payé"
+        },
+        {
+          "date": "2026-03-31",
+          "amount": 550,
+          "status": "Payé"
+        }
+      ]
+    },
+    {
+      "id": "EMP-005",
+      "name": "Jacob Therden",
+      "role": "Technique - Opératrice de Ligne d'Huilerie",
+      "email": "jacobtherden@gmail.com",
+      "phone": "+243812345751",
+      "photo": "data:image/jpeg;base64,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",
+      "salary": "480",
+      "status": "Présent",
+      "attendance": [
+        "2026-06-03"
+      ],
+      "salaryHistory": []
+    }
+  ],
+  "machinery": [
+    {
+      "id": "MAC-001",
+      "name": "Tracteur Agricole Massey Ferguson 375",
+      "hours": 1420,
+      "photo": "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=300&auto=format&fit=crop",
+      "status": "Opérationnel",
+      "category": "Agricole",
+      "maintenanceHistory": [
+        {
+          "cost": 250,
+          "date": "2026-04-10",
+          "type": "Régulière",
+          "description": "Vidange d'huile et changement de filtres hydrauliques"
+        },
+        {
+          "cost": 450,
+          "date": "2026-02-15",
+          "type": "Corrective",
+          "description": "Réparation de l'alternateur et batterie neuve"
+        }
+      ]
+    },
+    {
+      "id": "MAC-002",
+      "name": "Broyeur de Maïs Alvan Blanch BM12",
+      "hours": 3120,
+      "photo": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=300&auto=format&fit=crop",
+      "status": "En Maintenance",
+      "category": "Transformation Usine",
+      "maintenanceHistory": [
+        {
+          "cost": 850,
+          "date": "2026-05-24",
+          "type": "Corrective",
+          "description": "Vibrations anormales sur l'axe du rotor principal, technicien sur place"
+        },
+        {
+          "cost": 300,
+          "date": "2026-01-20",
+          "type": "Régulière",
+          "description": "Affûtage des marteaux de broyage"
+        }
+      ]
+    },
+    {
+      "id": "MAC-003",
+      "name": "Presse d'Huile Continue à Vis Expeller",
+      "hours": 1940,
+      "photo": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=300&auto=format&fit=crop",
+      "status": "Opérationnel",
+      "category": "Transformation Usine",
+      "maintenanceHistory": [
+        {
+          "cost": 180,
+          "date": "2026-03-05",
+          "type": "Régulière",
+          "description": "Lubrification des roulements à haute température"
+        }
+      ]
+    },
+    {
+      "id": "MAC-004",
+      "name": "Camion Benne SinoTruk Howo 20T",
+      "hours": 4680,
+      "photo": "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=300&auto=format&fit=crop",
+      "status": "Opérationnel",
+      "category": "Logistique",
+      "maintenanceHistory": [
+        {
+          "cost": 620,
+          "date": "2026-05-18",
+          "type": "Corrective",
+          "description": "Remplacement du maître-cylindre d'embrayage"
+        }
+      ]
+    }
+  ],
+  "commercial": {
+    "sales": [
+      {
+        "id": "FAC-001",
+        "date": "2026-05-15",
+        "amount": 3750,
+        "client": "Boulangerie Centrale du Katanga",
+        "status": "Payé",
+        "product": "Farine de Maïs Tamisée Premium (Sacs 25kg)",
+        "quantity": 150
+      },
+      {
+        "id": "FAC-002",
+        "date": "2026-05-20",
+        "amount": 6250,
+        "client": "Supermarché Hyper Psaro Ruashi",
+        "status": "Payé",
+        "product": "Farine de Maïs Tamisée Premium (Sacs 25kg)",
+        "quantity": 250
+      },
+      {
+        "id": "FAC-003",
+        "date": "2026-05-24",
+        "amount": 2160,
+        "client": "Établissements Mwanke & Fils",
+        "status": "En Attente",
+        "product": "Huile de Soja Pure Raffinée (Bouteilles 1L)",
+        "quantity": 120
+      }
+    ],
+    "purchases": [
+      {
+        "id": "BON-001",
+        "date": "2026-05-22",
+        "amount": 1250,
+        "status": "En Cours",
+        "product": "Sacs d'emballage vides 25kg",
+        "quantity": 5000,
+        "supplier": "PlastKat Lubumbashi Sarl",
+        "deliveryDate": "2026-05-31"
+      },
+      {
+        "id": "BON-002",
+        "date": "2026-05-25",
+        "amount": 1500,
+        "status": "Planifié",
+        "product": "Bouteilles plastiques vides 1L",
+        "quantity": 10000,
+        "supplier": "Emballages du Katanga",
+        "deliveryDate": "2026-06-08"
+      }
+    ]
+  },
+  "productionRates": {
+    "notes": "Par jour, l'usine consomme 150 sacs de 25kg et produit 150 sacs de farine tamisée; elle utilise 180 bouteilles vides de 1L pour emballer l'huile de Soja.",
+    "soyProcessingRate": 180,
+    "cornProcessingRate": 150
+  },
+  "clients": [
+    {
+      "id": "CLI-001",
+      "name": "Arsène Kabasele",
+      "companyName": "Boulangerie Centrale du Katanga",
+      "email": "contact@boulangeriecentrale.com",
+      "phone": "+243 821 234 567",
+      "address": "Avenue Ndjamena, Lubumbashi",
+      "registeredDate": "2026-03-12",
+      "category": "Boulangerie"
+    },
+    {
+      "id": "CLI-002",
+      "name": "Michel Ruashi",
+      "companyName": "Supermarché Hyper Psaro Ruashi",
+      "email": "info@hyperpsaro.cd",
+      "phone": "+243 998 765 432",
+      "address": "Route Ruashi, Gecamines, Lubumbashi",
+      "registeredDate": "2026-04-05",
+      "category": "Supermarché"
+    },
+    {
+      "id": "CLI-003",
+      "name": "Jean-Pierre Mwanke",
+      "companyName": "Établissements Mwanke & Fils",
+      "email": "mwankefils@gmail.com",
+      "phone": "+243 813 908 111",
+      "address": "Avenue Lumumba 410, Lubumbashi",
+      "registeredDate": "2026-04-18",
+      "category": "Grossiste"
+    }
+  ]
+}
