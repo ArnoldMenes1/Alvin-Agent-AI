@@ -8,6 +8,15 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+:root {
+  color-scheme: light;
+}
+
+body {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
 /* Custom print styles to create accurate PDF print replicas easily */
 @media print {
   html, body {

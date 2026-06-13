@@ -2,9 +2,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
-import { createRequire } from "module";
-const requireModule = createRequire(import.meta.url);
-const { GoogleGenAI } = requireModule("@google/genai") as typeof import("@google/genai");
+import { GoogleGenAI } from "@google/genai";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import dns from "dns";
@@ -15,7 +13,7 @@ dns.setDefaultResultOrder("ipv4first");
 dotenv.config();
 
 const app = express();
-const PORT = 3002;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
 
 app.use(express.json({ limit: "15mb" }));
 
