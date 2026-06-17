@@ -1,0 +1,19 @@
+{
+  "name": "Alvin Agent AI",
+  "short_name": "Alvin AI",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/apple-touch-icon.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ],
+  "theme_color": "#8A4FFF",
+  "background_color": "#0E0C15",
+  "display": "standalone"
+}

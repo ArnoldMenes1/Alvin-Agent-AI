@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { DatabaseState, Employee, Machine, SalesInvoice } from "../types";
 import { Brain, Send, ShieldAlert, AlertTriangle, AlertCircle, Mail, Sparkles, Printer, Hourglass, Zap, ChevronRight, MessageSquareCode, Settings, Calendar, Bell, X, CheckSquare, RefreshCw, Volume2, Download, Landmark } from "lucide-react";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { downloadHtmlDocument } from "../utils/downloadHelper";
 
 export function AlvinLogo({ className = "w-8 h-8" }: { className?: string }) {
@@ -765,15 +766,36 @@ export default function DashboardGerant({ data, onUpdate, darkMode }: DashboardG
                       <div className="space-y-3">
                         <div className="text-xs select-text">
                           <Markdown
+                            remarkPlugins={[remarkGfm]}
                             components={{
                               p: ({ children }) => <p className="mb-2 leading-relaxed text-slate-800 dark:text-neutral-200">{children}</p>,
-                              strong: ({ children }) => <strong className="font-extrabold text-violet-700 dark:text-violet-300">{children}</strong>,
+                              strong: ({ children }) => <strong className="font-extrabold text-violet-750 dark:text-violet-300">{children}</strong>,
                               ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-1 text-slate-800 dark:text-neutral-200">{children}</ul>,
                               li: ({ children }) => <li className="text-slate-800 dark:text-neutral-200">{children}</li>,
                               ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-1 text-slate-800 dark:text-neutral-200">{children}</ol>,
-                              h1: ({ children }) => <h1 className="text-sm font-black text-slate-900 dark:text-white mt-3 mb-1 uppercase tracking-wide">{children}</h1>,
+                              h1: ({ children }) => <h1 className="text-sm font-black text-slate-900 dark:text-white mt-3 mb-1 uppercase tracking-wide border-b pb-1 border-slate-150 dark:border-neutral-800">{children}</h1>,
                               h2: ({ children }) => <h2 className="text-xs font-black text-slate-800 dark:text-neutral-100 mt-2 mb-1 uppercase tracking-wider">{children}</h2>,
                               h3: ({ children }) => <h3 className="text-xs font-extrabold text-slate-800 dark:text-neutral-200 mt-2 mb-1">{children}</h3>,
+                              table: ({ children }) => (
+                                <div className="overflow-x-auto my-3 border border-slate-200 dark:border-neutral-700/60 rounded-xl shadow-xs">
+                                  <table className="min-w-full divide-y divide-slate-200 dark:divide-neutral-700 text-left text-xs bg-white/50 dark:bg-neutral-900/50">
+                                    {children}
+                                  </table>
+                                </div>
+                              ),
+                              thead: ({ children }) => <thead className="bg-slate-50 dark:bg-neutral-800 text-slate-900 dark:text-white">{children}</thead>,
+                              tbody: ({ children }) => <tbody className="bg-transparent divide-y divide-slate-100 dark:divide-neutral-800">{children}</tbody>,
+                              tr: ({ children }) => <tr className="hover:bg-slate-50/50 dark:hover:bg-neutral-800/20">{children}</tr>,
+                              th: ({ children, style }) => (
+                                <th style={style} className="px-3 py-2 text-left font-bold border-b border-slate-200 dark:border-neutral-700 text-[11px] uppercase tracking-wider">
+                                  {children}
+                                </th>
+                              ),
+                              td: ({ children, style }) => (
+                                <td style={style} className="px-3 py-2 text-slate-700 dark:text-neutral-300 font-normal font-sans text-xs">
+                                  {children}
+                                </td>
+                              ),
                             }}
                           >
                             {m.text}
@@ -936,15 +958,36 @@ export default function DashboardGerant({ data, onUpdate, darkMode }: DashboardG
               {/* Affichage elegant du texte markdown genere dans le style de document imprimable */}
               <div className="leading-relaxed text-gray-800 p-2 text-xs">
                 <Markdown
+                  remarkPlugins={[remarkGfm]}
                   components={{
                     p: ({ children }) => <p className="mb-2 text-gray-800 font-medium">{children}</p>,
                     strong: ({ children }) => <strong className="font-bold text-black">{children}</strong>,
                     ul: ({ children }) => <ul className="list-disc pl-5 mb-2 space-y-1 text-gray-800">{children}</ul>,
                     li: ({ children }) => <li className="text-gray-800">{children}</li>,
                     ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 space-y-1 text-gray-800">{children}</ol>,
-                    h1: ({ children }) => <h1 className="text-sm font-black text-black mt-3 mb-1 uppercase">{children}</h1>,
+                    h1: ({ children }) => <h1 className="text-sm font-black text-black mt-3 mb-1 uppercase border-b pb-1 border-gray-300">{children}</h1>,
                     h2: ({ children }) => <h2 className="text-xs font-black text-black mt-2 mb-1 uppercase">{children}</h2>,
                     h3: ({ children }) => <h3 className="text-xs font-bold text-black mt-2 mb-1">{children}</h3>,
+                    table: ({ children }) => (
+                      <div className="overflow-x-auto my-3 border border-gray-300 rounded-lg shadow-2xs">
+                        <table className="min-w-full divide-y divide-gray-300 text-left text-[11px] bg-white">
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                    thead: ({ children }) => <thead className="bg-gray-100 text-gray-900">{children}</thead>,
+                    tbody: ({ children }) => <tbody className="bg-white divide-y divide-gray-250">{children}</tbody>,
+                    tr: ({ children }) => <tr className="hover:bg-gray-50/50">{children}</tr>,
+                    th: ({ children, style }) => (
+                      <th style={style} className="px-2 py-1.5 font-bold text-gray-900 border-b border-gray-300 text-[10px] uppercase tracking-wider">
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children, style }) => (
+                      <td style={style} className="px-2 py-1.5 text-gray-800 font-normal font-sans text-xs">
+                        {children}
+                      </td>
+                    ),
                   }}
                 >
                   {strategicReport}

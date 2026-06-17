@@ -13,7 +13,7 @@ dns.setDefaultResultOrder("ipv4first");
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3002;
+const PORT = 3002;
 
 app.use(express.json({ limit: "15mb" }));
 
@@ -487,7 +487,10 @@ Ton rôle est de scruter minutieusement le snapshot JSON de la base de données 
 async function serveApp() {
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { 
+        middlewareMode: true,
+        host: '0.0.0.0'
+      },
       appType: "spa",
     });
     app.use(vite.middlewares);
