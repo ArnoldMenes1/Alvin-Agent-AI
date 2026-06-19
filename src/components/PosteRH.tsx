@@ -19,6 +19,8 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
   const [statusFilter, setStatusFilter] = useState("Tous");
   const [roleFilter, setRoleFilter] = useState("Tous");
 
+  const DEFAULT_USER_PHOTO = "https://plus.unsplash.com/premium_photo-1677252438411-9a930d7a5168?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
+
   // États du formulaire pour ajouter un employé
   const [newEmpForm, setNewEmpForm] = useState({
     name: "",
@@ -27,7 +29,7 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
     phone: "",
     salary: "450",
     status: "Présent" as Employee["status"],
-    photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop"
+    photo: DEFAULT_USER_PHOTO
   });
 
   // États du formulaire pour modifier un employé
@@ -98,6 +100,7 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
 
   const handleAddNewEmployee = (e: React.FormEvent) => {
     e.preventDefault();
+    const resolvedPhoto = newEmpForm.photo.trim() || DEFAULT_USER_PHOTO;
     const newEmp: Employee = {
       id: `EMP-${String(data.employees.length + 1).padStart(3, "0")}`,
       name: newEmpForm.name,
@@ -106,7 +109,7 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
       phone: newEmpForm.phone || "+243 812 000 000",
       salary: newEmpForm.salary,
       status: newEmpForm.status,
-      photo: newEmpForm.photo,
+      photo: resolvedPhoto,
       salaryHistory: [],
       attendance: [new Date().toISOString().split("T")[0]]
     };
@@ -125,7 +128,7 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
       phone: "",
       salary: "450",
       status: "Présent",
-      photo: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=300&auto=format&fit=crop"
+      photo: DEFAULT_USER_PHOTO
     });
   };
 
@@ -473,27 +476,61 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
                     value={newEmpForm.salary}
                     onChange={(e) => setNewEmpForm({ ...newEmpForm, salary: e.target.value })}
                     className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border-2 border-slate-300 dark:border-neutral-700 rounded-xl text-gray-955 dark:text-white font-mono font-bold focus:outline-none focus:border-violet-600"
-                    placeholder="e.g. 500"
+                    placeholder="e.g. 450"
                   />
                 </div>
 
-                <div>
-                  <label className="block text-slate-500 font-extrabold uppercase mb-1 font-sans">Importation d'identité photo</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      id="upload-portrait-input-form-add"
-                      accept="image/*"
-                      onChange={handleLocalPhotoUploadMock}
-                      className="hidden"
-                    />
-                    <label
-                      htmlFor="upload-portrait-input-form-add"
-                      className="px-3 py-2 border-2 border-dashed border-slate-300 hover:border-violet-500 rounded-xl text-center text-xs text-gray-600 dark:text-gray-400 cursor-pointer bg-white dark:bg-neutral-800 w-full transition font-semibold"
-                    >
-                      {isUploading ? "Lecture du fichier..." : "📂 Choisir un fichier"}
-                    </label>
+                <div className="md:col-span-2 bg-violet-50/30 dark:bg-neutral-850/25 p-4 rounded-xl border border-violet-100/40 dark:border-neutral-800 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-slate-500 font-extrabold uppercase text-[10px] tracking-wide">Photo de Profil (Lien URL ou Fichier local)</label>
+                    <span className="text-[10px] font-bold text-violet-650 dark:text-violet-400">Photo par défaut active</span>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-center">
+                    <div>
+                      <span className="block text-[9px] text-gray-400 font-bold uppercase mb-1">Saisir un lien internet (URL d'image)</span>
+                      <input
+                        type="url"
+                        value={newEmpForm.photo}
+                        onChange={(e) => setNewEmpForm({ ...newEmpForm, photo: e.target.value })}
+                        className="w-full px-3 py-1.8 bg-white dark:bg-neutral-800 border-2 border-slate-300 dark:border-neutral-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none"
+                        placeholder="Laisser par défaut, ou saisir un lien direct d'image..."
+                      />
+                    </div>
+                    <div>
+                      <span className="block text-[9px] text-gray-400 font-bold uppercase mb-1">Ou Charger un fichier d'image</span>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          id="upload-portrait-input-form-add"
+                          accept="image/*"
+                          onChange={handleLocalPhotoUploadMock}
+                          className="hidden"
+                        />
+                        <label
+                          htmlFor="upload-portrait-input-form-add"
+                          className="px-3 py-1.8 border-2 border-dashed border-slate-300 hover:border-violet-500 rounded-xl text-center text-xs text-gray-600 dark:text-gray-400 cursor-pointer bg-white dark:bg-neutral-800 w-full transition font-semibold"
+                        >
+                          {isUploading ? "Lecture du fichier..." : "📂 Charger un fichier local"}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  {newEmpForm.photo && (
+                    <div className="flex items-center gap-2 pt-1">
+                      <img 
+                        src={newEmpForm.photo} 
+                        alt="Aperçu du portrait" 
+                        className="w-10 h-10 rounded-lg object-cover border-2 border-violet-200" 
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = DEFAULT_USER_PHOTO;
+                        }}
+                      />
+                      <div className="text-[10px] text-gray-405 leading-tight">
+                        <p className="font-bold">Aperçu dynamique</p>
+                        <p className="truncate max-w-[250px] text-[9px] text-gray-400">{newEmpForm.photo}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

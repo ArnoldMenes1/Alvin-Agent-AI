@@ -67,13 +67,18 @@ interface ChatMessage {
 
 export default function DashboardGerant({ data, onUpdate, darkMode }: DashboardGerantProps) {
   // Etat de la messagerie
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      sender: "alvin",
-      text: "Bonjour Directeur. Je suis **Alvin Agent AI**, votre assistant exécutif stratégique à Lubumbashi.\n\nJ'ai analysé en temps réel les récoltes des champs, l'activité de l'huilerie, l'état d'entretien des moulins et vos stocks d'emballages.\n\nDemandez-moi une **estimation précise d'épuisement de vos sacs de farine** ou de vos **bouteilles d'huile**, une **synthèse financière** ou un **plan d'action stratégique** !",
-      timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (data.chatHistory && data.chatHistory.length > 0) {
+      return data.chatHistory;
     }
-  ]);
+    return [
+      {
+        sender: "alvin",
+        text: "Bonjour Directeur. Je suis **Alvin Agent AI**, votre assistant exécutif stratégique à Lubumbashi.\n\nJ'ai analysé en temps réel les récoltes des champs, l'activité de l'huilerie, l'état d'entretien des moulins et vos stocks d'emballages.\n\nDemandez-moi une **estimation précise d'épuisement de vos sacs de farine** ou de vos **bouteilles d'huile**, une **synthèse financière** ou un **plan d'action stratégique** !",
+        timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+      }
+    ];
+  });
   const [inputMessage, setInputMessage] = useState("");
   const [isLodingChat, setIsLoadingChat] = useState(false);
   
@@ -198,6 +203,17 @@ export default function DashboardGerant({ data, onUpdate, darkMode }: DashboardG
     });
   }
 
+  // Supprimer l'historique de discussion
+  const handleClearHistory = () => {
+    const defaultMsg: ChatMessage = {
+      sender: "alvin",
+      text: "Bonjour Directeur. Je suis **Alvin Agent AI**, votre assistant exécutif stratégique à Lubumbashi.\n\nJ'ai analysé en temps réel les récoltes des champs, l'activité de l'huilerie, l'état d'entretien des moulins et vos stocks d'emballages.\n\nDemandez-moi une **estimation précise d'épuisement de vos sacs de farine** ou de vos **bouteilles d'huile**, une **synthèse financière** ou un **plan d'action stratégique** !",
+      timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    };
+    setMessages([defaultMsg]);
+    onUpdate({ ...data, chatHistory: [defaultMsg] });
+  };
+
   // Gérer l'envoi de requêtes IA stratégiques
   const handleSendMessage = async (msgText: string) => {
     if (!msgText.trim() || isLodingChat) return;
@@ -207,7 +223,9 @@ export default function DashboardGerant({ data, onUpdate, darkMode }: DashboardG
       text: msgText,
       timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
     };
-    setMessages((prev) => [...prev, userMsg]);
+    const updatedWithUser = [...messages, userMsg];
+    setMessages(updatedWithUser);
+    onUpdate({ ...data, chatHistory: updatedWithUser });
     setInputMessage("");
     setIsLoadingChat(true);
 
@@ -228,7 +246,9 @@ export default function DashboardGerant({ data, onUpdate, darkMode }: DashboardG
         text: alvinText,
         timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
       };
-      setMessages((prev) => [...prev, alvinMsg]);
+      const finalMsgList = [...updatedWithUser, alvinMsg];
+      setMessages(finalMsgList);
+      onUpdate({ ...data, chatHistory: finalMsgList });
     } catch (err) {
       console.error("Chat communication failure:", err);
       const errorMsg: ChatMessage = {
@@ -236,7 +256,9 @@ export default function DashboardGerant({ data, onUpdate, darkMode }: DashboardG
         text: "🚨 **Échec de la connexion réseau avec Lubumbashi.**\nLe temps de latence est trop important ou le réseau est saturé. Veuillez réessayer.",
         timestamp: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
       };
-      setMessages((prev) => [...prev, errorMsg]);
+      const finalErrList = [...updatedWithUser, errorMsg];
+      setMessages(finalErrList);
+      onUpdate({ ...data, chatHistory: finalErrList });
     } finally {
       setIsLoadingChat(false);
     }
@@ -733,15 +755,26 @@ export default function DashboardGerant({ data, onUpdate, darkMode }: DashboardG
                 <span className="text-[9px] text-gray-400 font-mono">Prise en compte du Buffer de {safetyDays} jours</span>
               </div>
             </div>
-            {window.speechSynthesis && (
+            <div className="flex items-center gap-1.5 leading-none">
               <button
-                onClick={handleStopTTS}
-                className="px-2 py-1 border border-rose-200 text-rose-700 hover:bg-rose-50 text-[10px] rounded-lg font-bold"
-                title="Arrêter de lire à voix haute"
+                type="button"
+                onClick={handleClearHistory}
+                className="px-2 py-1 border border-slate-200 dark:border-neutral-800 hover:bg-slate-100 dark:hover:bg-neutral-800 text-slate-500 hover:text-slate-700 text-[10px] rounded-lg font-extrabold flex items-center gap-1.5 transition cursor-pointer"
+                title="Vider et réinitialiser l'historique du chat"
               >
-                ■ Arrêter
+                🗑️ Effacer l'histoire
               </button>
-            )}
+              {window.speechSynthesis && (
+                <button
+                  type="button"
+                  onClick={handleStopTTS}
+                  className="px-2 py-1 border border-rose-200 text-rose-700 hover:bg-rose-50 text-[10px] rounded-lg font-bold transition cursor-pointer"
+                  title="Arrêter de lire à voix haute"
+                >
+                  ■ Arrêter
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Chronologie des messages */}

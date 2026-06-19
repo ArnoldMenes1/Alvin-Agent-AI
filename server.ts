@@ -13,7 +13,7 @@ dns.setDefaultResultOrder("ipv4first");
 dotenv.config();
 
 const app = express();
-const PORT = 3002;
+const PORT = 3000;
 
 app.use(express.json({ limit: "15mb" }));
 

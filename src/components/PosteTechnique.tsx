@@ -78,6 +78,186 @@ export default function PosteTechnique({ data, onUpdate, darkMode }: PosteTechni
     if (updatedMac) setSelectedMachine(updatedMac);
   };
 
+  // Mode de chargement d'image ("url" pour saisie manuelle de lien, "upload" pour fichier local)
+  const [addImageSourceType, setAddImageSourceType] = useState<"url" | "upload">("url");
+  const [editImageSourceType, setEditImageSourceType] = useState<"url" | "upload">("url");
+
+  // États de l'ajout d'appareil de travail
+  const [isAddingMachine, setIsAddingMachine] = useState(false);
+  const [machineForm, setMachineForm] = useState({
+    name: "",
+    category: "Agricole" as Machine["category"],
+    hours: "0",
+    status: "Opérationnel" as Machine["status"],
+    photo: ""
+  });
+  const [addMachineError, setAddMachineError] = useState<string | null>(null);
+  const [addMachineSuccess, setAddMachineSuccess] = useState<string | null>(null);
+
+  // États de modification d'appareil de travail existant
+  const [isEditingMachine, setIsEditingMachine] = useState(false);
+  const [editMachineForm, setEditMachineForm] = useState({
+    id: "",
+    name: "",
+    category: "Agricole" as Machine["category"],
+    hours: "0",
+    status: "Opérationnel" as Machine["status"],
+    photo: ""
+  });
+  const [editMachineError, setEditMachineError] = useState<string | null>(null);
+  const [editMachineSuccess, setEditMachineSuccess] = useState<string | null>(null);
+
+  const startEditingMachine = (machine: Machine) => {
+    setIsEditingMachine(true);
+    setIsAddingMachine(false);
+    setIsAddingRecord(false);
+    setEditMachineForm({
+      id: machine.id,
+      name: machine.name,
+      category: machine.category,
+      hours: String(machine.hours),
+      status: machine.status,
+      photo: machine.photo
+    });
+    setEditImageSourceType(machine.photo.startsWith("data:") ? "upload" : "url");
+    setEditMachineError(null);
+    setEditMachineSuccess(null);
+  };
+
+  const handleSaveEditedMachine = (e: React.FormEvent) => {
+    e.preventDefault();
+    setEditMachineError(null);
+    setEditMachineSuccess(null);
+
+    const name = editMachineForm.name.trim();
+    if (!name) {
+      setEditMachineError("La désignation de l'appareil est obligatoire.");
+      return;
+    }
+
+    const updatedMachinery = data.machinery.map((mac) => {
+      if (mac.id === editMachineForm.id) {
+        return {
+          ...mac,
+          name,
+          category: editMachineForm.category,
+          hours: Number(editMachineForm.hours) || 0,
+          status: editMachineForm.status,
+          photo: editMachineForm.photo.trim()
+        };
+      }
+      return mac;
+    });
+
+    const updated = {
+      ...data,
+      machinery: updatedMachinery
+    };
+
+    onUpdate(updated);
+    setEditMachineSuccess("Les spécifications de l'appareil ont été mises à jour.");
+    
+    // Mettre à jour l'état affiché
+    const updatedMac = updatedMachinery.find((m) => m.id === editMachineForm.id);
+    if (updatedMac) {
+      setSelectedMachine(updatedMac);
+    }
+
+    setTimeout(() => {
+      setIsEditingMachine(false);
+      setEditMachineSuccess(null);
+    }, 1500);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: "add" | "edit") => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // Limite de 2 Mo
+        const err = "L'image dépasse la limite de 2 Mo. Choisissez un fichier plus léger.";
+        if (type === "add") setAddMachineError(err);
+        else setEditMachineError(err);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        if (type === "add") {
+          setMachineForm(prev => ({ ...prev, photo: base64String }));
+        } else {
+          setEditMachineForm(prev => ({ ...prev, photo: base64String }));
+        }
+      };
+      reader.onerror = () => {
+        const err = "Erreur fatale lors de l'encodage du fichier.";
+        if (type === "add") setAddMachineError(err);
+        else setEditMachineError(err);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCreateMachine = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAddMachineError(null);
+    setAddMachineSuccess(null);
+
+    const name = machineForm.name.trim();
+    if (!name) {
+      setAddMachineError("Veuillez renseigner le nom ou désignation de l'appareil.");
+      return;
+    }
+
+    // Auto generate ID based on existing machinery IDs count
+    const nextNum = Math.max(...data.machinery.map(m => {
+      const match = m.id.match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+    }), 0) + 1;
+    const newId = `MAC-${String(nextNum).padStart(3, '0')}`;
+
+    let photoUrl = machineForm.photo.trim();
+    if (!photoUrl) {
+      if (machineForm.category === "Agricole") {
+        photoUrl = "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=300&auto=format&fit=crop";
+      } else if (machineForm.category === "Transformation Usine") {
+        photoUrl = "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=300&auto=format&fit=crop";
+      } else if (machineForm.category === "Logistique") {
+        photoUrl = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=300&auto=format&fit=crop";
+      } else {
+        photoUrl = "https://images.unsplash.com/photo-1537462715879-360eeb61a0bc?q=80&w=300&auto=format&fit=crop";
+      }
+    }
+
+    const newMachine: Machine = {
+      id: newId,
+      name,
+      category: machineForm.category,
+      hours: Number(machineForm.hours) || 0,
+      status: machineForm.status,
+      photo: photoUrl,
+      maintenanceHistory: []
+    };
+
+    const updatedMachinery = [...data.machinery, newMachine];
+    const updated = {
+      ...data,
+      machinery: updatedMachinery
+    };
+
+    onUpdate(updated);
+    setAddMachineSuccess(`L'appareil "${name}" (${newId}) a bien été ajouté au parc.`);
+    setSelectedMachine(newMachine);
+    setIsAddingMachine(false);
+
+    // Reset Form
+    setMachineForm({
+      name: "",
+      category: "Agricole",
+      hours: "0",
+      status: "Opérationnel",
+      photo: ""
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Bloc de titre */}
@@ -105,13 +285,15 @@ export default function PosteTechnique({ data, onUpdate, darkMode }: PosteTechni
         <div className="lg:col-span-1 space-y-4">
           <div className="grid grid-cols-1 gap-4">
             {data.machinery.map((mac) => {
-              const isSelected = selectedMachine?.id === mac.id;
+              const isSelected = selectedMachine?.id === mac.id && !isAddingMachine;
               return (
                 <button
                   key={mac.id}
                   onClick={() => {
                     setSelectedMachine(mac);
                     setIsAddingRecord(false);
+                    setIsAddingMachine(false);
+                    setIsEditingMachine(false);
                   }}
                   className={`flex flex-col text-left rounded-2xl border p-4 transition-all relative overflow-hidden cursor-pointer ${
                     isSelected
@@ -148,25 +330,425 @@ export default function PosteTechnique({ data, onUpdate, darkMode }: PosteTechni
                 </button>
               );
             })}
+
+            {/* Bouton d'ajout de nouvel appareil */}
+            <button
+              onClick={() => {
+                setSelectedMachine(null);
+                setIsAddingMachine(true);
+                setIsEditingMachine(false);
+                setAddMachineError(null);
+                setAddMachineSuccess(null);
+              }}
+              className={`w-full py-4 px-4 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer group ${
+                isAddingMachine
+                  ? "bg-emerald-500/15 border-emerald-500 text-emerald-700 dark:text-emerald-300"
+                  : "bg-cyan-50/10 dark:bg-cyan-955/5 border-cyan-200/50 dark:border-neutral-850 hover:bg-cyan-50/20 dark:hover:bg-cyan-955/15 hover:border-cyan-300 text-cyan-600 dark:text-cyan-400"
+              }`}
+            >
+              <Wrench className="w-5 h-5 text-cyan-500 group-hover:scale-110 transition-transform" />
+              <span className="text-xs font-bold">➕ Ajouter un appareil</span>
+              <span className="text-[10px] text-gray-400 text-center">Enregistrer un nouvel engin dans le parc</span>
+            </button>
           </div>
         </div>
 
         {/* Colonne droite : Diagnostic detaille et historique des interventions */}
         <div className="lg:col-span-2">
-          {selectedMachine ? (
+          {isAddingMachine ? (
+            <div className="bg-white dark:bg-neutral-900/40 dark:backdrop-blur-md p-6 rounded-2xl border border-gray-100 dark:border-neutral-800 shadow-sm space-y-6">
+              <div className="border-b border-gray-100 dark:border-neutral-800 pb-3">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">Création et Enregistrement d'un Nouvel Appareil de Travail</h3>
+                <p className="text-xs text-gray-500">Ajouter les engins industriels, tracteurs ou machines nouvellement commandés au parc d'atelier de Lubumbashi.</p>
+              </div>
+
+              <form onSubmit={handleCreateMachine} className="space-y-4 max-w-2xl">
+                {/* Designation / Nom */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Désignation de l'appareil (ex: Tracteur John Deere 5075E)</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Entrer le nom complet du matériel..."
+                    value={machineForm.name}
+                    onChange={(e) => setMachineForm({ ...machineForm, name: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-150 dark:border-neutral-800 rounded-xl text-xs text-gray-900 dark:text-white placeholder:text-gray-400 outline-hidden focus:border-cyan-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Catégorie */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Secteur / Catégorie d'utilisation</label>
+                    <select
+                      value={machineForm.category}
+                      onChange={(e) => setMachineForm({ ...machineForm, category: e.target.value as Machine["category"] })}
+                      className="w-full px-3 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-150 dark:border-neutral-800 rounded-xl text-xs text-gray-900 dark:text-white outline-hidden focus:border-cyan-500"
+                    >
+                      <option value="Agricole">Agricole (Machines des champs, récolte)</option>
+                      <option value="Transformation Usine">Transformation Usine (Ligne de pressage, broyage)</option>
+                      <option value="Logistique">Logistique (Chariots élévateurs, camions)</option>
+                      <option value="Autre">Autre (Matériaux d'ateliers secondaires)</option>
+                    </select>
+                  </div>
+
+                  {/* Compteur Heures Initial */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Compteur d'heures d'activité initial</label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      placeholder="0"
+                      value={machineForm.hours}
+                      onChange={(e) => setMachineForm({ ...machineForm, hours: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-150 dark:border-neutral-800 rounded-xl text-xs text-gray-900 dark:text-white font-mono outline-hidden focus:border-cyan-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Statut Initial */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Statut opérationnel initial</label>
+                    <select
+                      value={machineForm.status}
+                      onChange={(e) => setMachineForm({ ...machineForm, status: e.target.value as Machine["status"] })}
+                      className="w-full px-3 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-150 dark:border-neutral-800 rounded-xl text-xs text-gray-900 dark:text-white outline-hidden focus:border-cyan-500"
+                    >
+                      <option value="Opérationnel">✓ Opérationnel</option>
+                      <option value="En Maintenance">⚠ En Maintenance</option>
+                      <option value="En Panne">🚨 En Panne</option>
+                    </select>
+                  </div>
+
+                  {/* Photo de l'appareil (Saisie d'un URL ou chargement de fichier local) */}
+                  <div className="bg-gray-50 dark:bg-neutral-850/30 p-4 rounded-xl border border-gray-150 dark:border-neutral-800 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Photo (Illustration)</label>
+                      <div className="flex bg-gray-200/60 dark:bg-neutral-800 p-0.5 rounded-lg text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => setAddImageSourceType("url")}
+                          className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                            addImageSourceType === "url" 
+                              ? "bg-white dark:bg-neutral-700 text-cyan-600 dark:text-cyan-400 shadow-sm"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          Lien URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAddImageSourceType("upload")}
+                          className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                            addImageSourceType === "upload"
+                              ? "bg-white dark:bg-neutral-700 text-cyan-600 dark:text-cyan-400 shadow-sm"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          Fichier
+                        </button>
+                      </div>
+                    </div>
+
+                    {addImageSourceType === "url" ? (
+                      <div>
+                        <input
+                          type="url"
+                          placeholder="Lien URL d'image valide..."
+                          value={machineForm.photo}
+                          onChange={(e) => setMachineForm({ ...machineForm, photo: e.target.value })}
+                          className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-150 dark:border-neutral-750 rounded-lg text-xs text-gray-900 dark:text-white placeholder:text-gray-400 outline-hidden focus:border-cyan-500"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="add-machine-file-picker"
+                            onChange={(e) => handleFileChange(e, "add")}
+                            className="hidden"
+                          />
+                          <label
+                            htmlFor="add-machine-file-picker"
+                            className="px-3 py-1.5 bg-white dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-750 border border-gray-150 dark:border-neutral-750 text-cyan-650 dark:text-cyan-455 text-[11px] font-semibold rounded-lg cursor-pointer transition flex items-center gap-1 shadow-xs"
+                          >
+                            📥 Charger une image
+                          </label>
+                          <span className="text-[9px] text-gray-400 truncate max-w-[120px]">
+                            {machineForm.photo.startsWith("data:") ? "✓ Image Base64 intégrée" : "Laisser par défaut"}
+                          </span>
+                        </div>
+                        {machineForm.photo.startsWith("data:") && (
+                          <div className="flex items-center gap-2">
+                            <img 
+                              src={machineForm.photo} 
+                              alt="Aperçu" 
+                              className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-neutral-700" 
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setMachineForm(prev => ({ ...prev, photo: "" }))}
+                              className="text-red-500 text-[10px] font-bold hover:underline"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {addMachineError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 text-xs font-bold rounded-xl">
+                    ⚠️ {addMachineError}
+                  </div>
+                )}
+
+                {addMachineSuccess && (
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-450 text-xs font-bold rounded-xl">
+                    ✓ {addMachineSuccess}
+                  </div>
+                )}
+
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddingMachine(false);
+                      setSelectedMachine(data.machinery[0] || null);
+                    }}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md"
+                  >
+                    Enregistrer au parc technique
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : isEditingMachine ? (
+            <div className="bg-white dark:bg-neutral-900/40 dark:backdrop-blur-md p-6 rounded-2xl border border-gray-100 dark:border-neutral-800 shadow-sm space-y-6 animate-fadeIn">
+              <div className="border-b border-gray-100 dark:border-neutral-800 pb-3 flex justify-between items-center">
+                <div>
+                  <h3 className="text-base font-bold text-gray-900 dark:text-white">Modifier l'appareil : {editMachineForm.id}</h3>
+                  <p className="text-xs text-gray-500">Mettre à jour la fiche d'identité et les caractéristiques de l'appareil de travail.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingMachine(false)}
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveEditedMachine} className="space-y-4 max-w-2xl">
+                {/* Désignation / Nom */}
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Désignation de l'appareil (ex: Tracteur John Deere 5075E)</label>
+                  <input
+                    type="text"
+                    required
+                    value={editMachineForm.name}
+                    onChange={(e) => setEditMachineForm({ ...editMachineForm, name: e.target.value })}
+                    className="w-full px-3 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-150 dark:border-neutral-800 rounded-xl text-xs text-gray-900 dark:text-white outline-hidden focus:border-cyan-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Catégorie */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Secteur / Catégorie d'utilisation</label>
+                    <select
+                      value={editMachineForm.category}
+                      onChange={(e) => setEditMachineForm({ ...editMachineForm, category: e.target.value as Machine["category"] })}
+                      className="w-full px-3 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-150 dark:border-neutral-800 rounded-xl text-xs text-gray-900 dark:text-white outline-hidden focus:border-cyan-500"
+                    >
+                      <option value="Agricole">Agricole (Machines des champs, récolte)</option>
+                      <option value="Transformation Usine">Transformation Usine (Ligne de pressage, broyage)</option>
+                      <option value="Logistique">Logistique (Chariots élévateurs, camions)</option>
+                      <option value="Autre">Autre (Matériaux d'ateliers secondaires)</option>
+                    </select>
+                  </div>
+
+                  {/* Compteur d'heures */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Heures d'activité accumulées</label>
+                    <input
+                      type="number"
+                      min="0"
+                      required
+                      value={editMachineForm.hours}
+                      onChange={(e) => setEditMachineForm({ ...editMachineForm, hours: e.target.value })}
+                      className="w-full px-3 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-150 dark:border-neutral-800 rounded-xl text-xs text-gray-900 dark:text-white font-mono outline-hidden focus:border-cyan-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Statut */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Diagnostic de fonctionnement</label>
+                    <select
+                      value={editMachineForm.status}
+                      onChange={(e) => setEditMachineForm({ ...editMachineForm, status: e.target.value as Machine["status"] })}
+                      className="w-full px-3 py-2.5 bg-gray-50 dark:bg-neutral-800 border border-gray-150 dark:border-neutral-800 rounded-xl text-xs text-gray-900 dark:text-white outline-hidden focus:border-cyan-500"
+                    >
+                      <option value="Opérationnel">✓ Opérationnel</option>
+                      <option value="En Maintenance">⚠ En Maintenance</option>
+                      <option value="En Panne">🚨 En Panne</option>
+                    </select>
+                  </div>
+
+                  {/* Boutons d'image pour l'édition */}
+                  <div className="bg-gray-50 dark:bg-neutral-850/30 p-4 rounded-xl border border-gray-150 dark:border-neutral-800 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Photo (Illustration)</label>
+                      <div className="flex bg-gray-200/60 dark:bg-neutral-800 p-0.5 rounded-lg text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => setEditImageSourceType("url")}
+                          className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                            editImageSourceType === "url" 
+                              ? "bg-white dark:bg-neutral-700 text-cyan-600 dark:text-cyan-400 shadow-sm"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          Lien URL
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditImageSourceType("upload")}
+                          className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                            editImageSourceType === "upload"
+                              ? "bg-white dark:bg-neutral-700 text-cyan-600 dark:text-cyan-400 shadow-sm"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          Fichier
+                        </button>
+                      </div>
+                    </div>
+
+                    {editImageSourceType === "url" ? (
+                      <div>
+                        <input
+                          type="url"
+                          placeholder="Lien URL d'image valide..."
+                          value={editMachineForm.photo}
+                          onChange={(e) => setEditMachineForm({ ...editMachineForm, photo: e.target.value })}
+                          className="w-full px-3 py-2 bg-white dark:bg-neutral-800 border border-gray-150 dark:border-neutral-750 rounded-lg text-xs text-gray-900 dark:text-white placeholder:text-gray-400 outline-hidden focus:border-cyan-500"
+                        />
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="edit-machine-file-picker"
+                            onChange={(e) => handleFileChange(e, "edit")}
+                            className="hidden"
+                          />
+                          <label
+                            htmlFor="edit-machine-file-picker"
+                            className="px-3 py-1.5 bg-white dark:bg-neutral-800 hover:bg-gray-100 dark:hover:bg-neutral-750 border border-gray-150 dark:border-neutral-750 text-cyan-650 dark:text-cyan-455 text-[11px] font-semibold rounded-lg cursor-pointer transition flex items-center gap-1 shadow-xs"
+                          >
+                            📥 Charger une image
+                          </label>
+                          <span className="text-[9px] text-gray-400 truncate max-w-[120px]">
+                            {editMachineForm.photo.startsWith("data:") ? "✓ Image Base64 intégrée" : "Adresse existante"}
+                          </span>
+                        </div>
+                        {editMachineForm.photo && (
+                          <div className="flex items-center gap-2">
+                            <img 
+                              src={editMachineForm.photo} 
+                              alt="Aperçu" 
+                              className="w-10 h-10 rounded-lg object-cover border border-gray-200 dark:border-neutral-700" 
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setEditMachineForm(prev => ({ ...prev, photo: "" }))}
+                              className="text-red-500 text-[10px] font-bold hover:underline"
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {editMachineError && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 text-xs font-bold rounded-xl font-sans">
+                    ⚠️ {editMachineError}
+                  </div>
+                )}
+
+                {editMachineSuccess && (
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-450 text-xs font-bold rounded-xl font-sans">
+                    ✓ {editMachineSuccess}
+                  </div>
+                )}
+
+                <div className="pt-4 flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingMachine(false)}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-300 text-xs font-bold rounded-xl transition cursor-pointer"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md"
+                  >
+                    Mettre à jour l'appareil
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : selectedMachine ? (
             <div className="space-y-6">
               {/* Carte visuelle des indicateurs cles */}
               <div className="p-6 bg-white dark:bg-neutral-900/40 dark:backdrop-blur-md rounded-2xl border border-gray-100 dark:border-neutral-800 shadow-xs relative overflow-hidden">
                 <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-                  <img
-                    src={selectedMachine.photo}
-                    alt={selectedMachine.name}
-                    referrerPolicy="no-referrer"
-                    className="w-24 h-24 rounded-2xl object-cover border-2 border-indigo-550/50 shadow-md"
-                  />
+                  <div className="relative group">
+                    <img
+                      src={selectedMachine.photo}
+                      alt={selectedMachine.name}
+                      referrerPolicy="no-referrer"
+                      className="w-24 h-24 rounded-2xl object-cover border-2 border-indigo-500/50 shadow-md group-hover:scale-105 transition duration-200"
+                    />
+                    <button
+                      onClick={() => startEditingMachine(selectedMachine)}
+                      className="absolute -bottom-1 -right-1 p-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl transition shadow-md cursor-pointer"
+                      title="Modifier les données de l'appareil"
+                    >
+                      <PenTool size={11} />
+                    </button>
+                  </div>
                   <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-xl font-extrabold text-gray-950 dark:text-white">{selectedMachine.name}</h3>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="text-xl font-extrabold text-gray-950 dark:text-white leading-tight">{selectedMachine.name}</h3>
+                      <button
+                        onClick={() => startEditingMachine(selectedMachine)}
+                        className="px-2.5 py-1 bg-cyan-50 hover:bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 text-[10px] font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer border border-cyan-100 dark:border-neutral-800 shadow-xs"
+                        title="Modifier cet appareil de travail"
+                      >
+                        ✏️ Modifier l'appareil
+                      </button>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       Enregistrement d'atelier : {selectedMachine.id} • Secteur : {selectedMachine.category}

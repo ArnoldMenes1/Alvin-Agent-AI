@@ -127,6 +127,12 @@ export interface StockAlert {
   status: "read" | "unread";
 }
 
+export interface ChatMessage {
+  sender: "user" | "alvin";
+  text: string;
+  timestamp: string;
+}
+
 export interface DatabaseState {
   employees: Employee[];
   stocks: Stocks;
@@ -136,4 +142,5 @@ export interface DatabaseState {
   users?: UserAccount[];
   alerts?: StockAlert[];
   clients?: Client[];
+  chatHistory?: ChatMessage[];
 }

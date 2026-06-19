@@ -10,13 +10,100 @@ interface PosteStocksProps {
 }
 
 export default function PosteStocks({ data, onUpdate, darkMode }: PosteStocksProps) {
-  const [activeTab, setActiveTab] = useState<"summary" | "actions">("summary");
+  const [activeTab, setActiveTab] = useState<"summary" | "actions" | "createnew">("summary");
   const [printingInventory, setPrintingInventory] = useState(false);
+
+  // Nouvel item pour le stock
+  const [newItemType, setNewItemType] = useState<"raw" | "finished" | "consumable">("finished");
+  const [newItemId, setNewItemId] = useState("");
+  const [newItemName, setNewItemName] = useState("");
+  const [newItemQuantity, setNewItemQuantity] = useState("");
+  const [newItemUnit, setNewItemUnit] = useState("Cartons");
+  const [newItemThreshold, setNewItemThreshold] = useState("100");
+  const [newProductSuccess, setNewProductSuccess] = useState<string | null>(null);
+  const [newProductError, setNewProductError] = useState<string | null>(null);
+
+  // Auto-fill ID and unit depending on selected type
+  React.useEffect(() => {
+    if (newItemType === "raw") {
+      setNewItemId(`RM-${String(data.stocks.rawMaterials.length + 1).padStart(3, '0')}`);
+      setNewItemUnit("Tonnes");
+    } else if (newItemType === "finished") {
+      setNewItemId(`FP-${String(data.stocks.finishedProducts.length + 1).padStart(3, '0')}`);
+      setNewItemUnit("Cartons");
+    } else {
+      setNewItemId(`CO-${String(data.stocks.consumables.length + 1).padStart(3, '0')}`);
+      setNewItemUnit("pcs");
+    }
+    setNewProductSuccess(null);
+    setNewProductError(null);
+  }, [newItemType, data.stocks.rawMaterials.length, data.stocks.finishedProducts.length, data.stocks.consumables.length]);
 
   // Etats des formulaires
   const [rmForm, setRmForm] = useState({ id: data.stocks.rawMaterials[0]?.id || "", amount: "" });
   const [fpForm, setFpForm] = useState({ id: data.stocks.finishedProducts[0]?.id || "", quantity: "" });
   const [coForm, setCoForm] = useState({ id: data.stocks.consumables[0]?.id || "", quantity: "" });
+
+  const handleCreateNewProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewProductSuccess(null);
+    setNewProductError(null);
+
+    const targetId = newItemId.trim().toUpperCase();
+    const name = newItemName.trim();
+    const unit = newItemUnit.trim();
+
+    if (!targetId || !name || !unit) {
+      setNewProductError("Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+
+    // Vérifier l'unicité de l'ID
+    const existsRaw = data.stocks.rawMaterials.some((item) => item.id.toUpperCase() === targetId);
+    const existsFin = data.stocks.finishedProducts.some((item) => item.id.toUpperCase() === targetId);
+    const existsCon = data.stocks.consumables.some((item) => item.id.toUpperCase() === targetId);
+
+    if (existsRaw || existsFin || existsCon) {
+      setNewProductError(`L'identifiant "${targetId}" est déjà utilisé par un autre article.`);
+      return;
+    }
+
+    const qty = Number(newItemQuantity) || 0;
+    const updatedStocks = { ...data.stocks };
+
+    if (newItemType === "raw") {
+      const item: RawMaterialStock = { id: targetId, name, tonnage: qty, unit };
+      updatedStocks.rawMaterials = [...updatedStocks.rawMaterials, item];
+    } else if (newItemType === "finished") {
+      const item: FinishedProductStock = { id: targetId, name, quantity: qty, unit };
+      updatedStocks.finishedProducts = [...updatedStocks.finishedProducts, item];
+    } else {
+      const item: ConsumableStock = { id: targetId, name, quantity: qty, unit, threshold: Number(newItemThreshold) || 100 };
+      updatedStocks.consumables = [...updatedStocks.consumables, item];
+    }
+
+    const updated = {
+      ...data,
+      stocks: updatedStocks
+    };
+
+    onUpdate(updated);
+    setNewProductSuccess(`"${name}" (${targetId}) a bien été créé.`);
+    
+    // Auto-select in transactions dropdowns
+    if (newItemType === "raw") {
+      setRmForm(prev => ({ ...prev, id: targetId }));
+    } else if (newItemType === "finished") {
+      setFpForm(prev => ({ ...prev, id: targetId }));
+    } else {
+      setCoForm(prev => ({ ...prev, id: targetId }));
+    }
+
+    // Reset formulaire
+    setNewItemName("");
+    setNewItemQuantity("");
+    setNewItemThreshold("100");
+  };
 
   const handleUpdateRawMaterial = (e: React.FormEvent, type: "entry" | "dispatch") => {
     e.preventDefault();
@@ -110,7 +197,7 @@ export default function PosteStocks({ data, onUpdate, darkMode }: PosteStocksPro
       </div>
 
       {/* Onglets de changement de vue */}
-      <div className="flex gap-2 p-1 bg-gray-100 dark:bg-neutral-800/60 rounded-xl w-fit">
+      <div className="flex flex-wrap gap-2 p-1 bg-gray-100 dark:bg-neutral-800/60 rounded-xl w-fit">
         <button
           onClick={() => setActiveTab("summary")}
           className={`px-4 py-2 rounded-lg text-xs font-semibold select-none cursor-pointer transition-all ${
@@ -131,9 +218,23 @@ export default function PosteStocks({ data, onUpdate, darkMode }: PosteStocksPro
         >
           🔄 Enregistrer Flux (Entrées / Sorties)
         </button>
+        <button
+          onClick={() => {
+            setActiveTab("createnew");
+            setNewProductSuccess(null);
+            setNewProductError(null);
+          }}
+          className={`px-4 py-2 rounded-lg text-xs font-semibold select-none cursor-pointer transition-all flex items-center gap-1.5 ${
+            activeTab === "createnew"
+              ? "bg-emerald-600 dark:bg-emerald-700 text-white shadow-xs"
+              : "text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400"
+          }`}
+        >
+          ➕ Ajouter Nouveau Produit
+        </button>
       </div>
 
-      {activeTab === "summary" ? (
+      {activeTab === "summary" && (
         /* RESUME DE L'INVENTAIRE AVEC ALERTES */
         <div className="space-y-6">
           {/* Section 1 : Tonnages de mais/soja bruts */}
@@ -241,7 +342,9 @@ export default function PosteStocks({ data, onUpdate, darkMode }: PosteStocksPro
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {activeTab === "actions" && (
         /* PANNEAU ACTIONS ET TRANSACTIONS */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Action 1 : Tonnage de recolte des matieres premieres */}
@@ -256,9 +359,9 @@ export default function PosteStocks({ data, onUpdate, darkMode }: PosteStocksPro
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Matière première</label>
                   <select
-                    value={rmForm.id}
+                    value={rmForm.id || (data.stocks.rawMaterials[0]?.id || "")}
                     onChange={(e) => setRmForm({ ...rmForm, id: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-950 dark:text-white"
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-955 dark:text-white"
                   >
                     {data.stocks.rawMaterials.map((rm) => (
                       <option key={rm.id} value={rm.id}>{rm.name}</option>
@@ -310,7 +413,7 @@ export default function PosteStocks({ data, onUpdate, darkMode }: PosteStocksPro
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Produit de sortie</label>
                   <select
-                    value={fpForm.id}
+                    value={fpForm.id || (data.stocks.finishedProducts[0]?.id || "")}
                     onChange={(e) => setFpForm({ ...fpForm, id: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-955 dark:text-white"
                   >
@@ -363,7 +466,7 @@ export default function PosteStocks({ data, onUpdate, darkMode }: PosteStocksPro
                 <div>
                   <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Sélectionner consommable</label>
                   <select
-                    value={coForm.id}
+                    value={coForm.id || (data.stocks.consumables[0]?.id || "")}
                     onChange={(e) => setCoForm({ ...coForm, id: e.target.value })}
                     className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-955 dark:text-white"
                   >
@@ -404,6 +507,213 @@ export default function PosteStocks({ data, onUpdate, darkMode }: PosteStocksPro
             </div>
           </form>
 
+        </div>
+      )}
+
+      {activeTab === "createnew" && (
+        <div className="bg-white dark:bg-neutral-900/40 dark:backdrop-blur-md p-6 rounded-2xl border border-gray-100 dark:border-neutral-800 shadow-sm space-y-6">
+          <div className="border-b border-gray-100 dark:border-neutral-800 pb-3">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">Création et Enregistrement de Nouveau Produit ou Intrant</h3>
+            <p className="text-xs text-gray-500">Ajouter un nouveau produit fini, matière première ou consommable logistique non présent par défaut au dépôt.</p>
+          </div>
+
+          <form onSubmit={handleCreateNewProduct} className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+            <div className="space-y-4">
+              {/* Type Category */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Catégorie d'Article</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewItemType("raw")}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                      newItemType === "raw"
+                        ? "bg-indigo-50 border-indigo-500 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-400 dark:text-indigo-300"
+                        : "bg-gray-50 border-gray-100 hover:border-gray-300 text-gray-650 dark:bg-neutral-800 dark:border-neutral-800"
+                    }`}
+                  >
+                    <span>🌾</span>
+                    <span>Matière Première</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewItemType("finished")}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                      newItemType === "finished"
+                        ? "bg-emerald-50 border-emerald-500 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-400 dark:text-emerald-300"
+                        : "bg-gray-50 border-gray-100 hover:border-gray-300 text-gray-650 dark:bg-neutral-800 dark:border-neutral-800"
+                    }`}
+                  >
+                    <span>📦</span>
+                    <span>Produit Fini</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setNewItemType("consumable")}
+                    className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                      newItemType === "consumable"
+                        ? "bg-amber-50 border-amber-500 text-amber-700 dark:bg-amber-955/20 dark:border-amber-400 dark:text-amber-300"
+                        : "bg-gray-50 border-gray-100 hover:border-gray-300 text-gray-650 dark:bg-neutral-800 dark:border-neutral-800"
+                    }`}
+                  >
+                    <span>🛠️</span>
+                    <span>Consommable</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* ID Identifier */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Identifiant Unique (Code ID)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="ex: FP-003, CO-005..."
+                  value={newItemId}
+                  onChange={(e) => setNewItemId(e.target.value.toUpperCase())}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-955 dark:text-white font-mono"
+                />
+                <p className="text-[10px] text-gray-450 mt-1">Identifiant unique servant de clé d'inventaire technique au dépôt.</p>
+              </div>
+
+              {/* Designation Name */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Désignation (Nom complet de l'article)</label>
+                <input
+                  type="text"
+                  required
+                  placeholder={newItemType === "raw" ? "ex: Graines de Soja Bio" : newItemType === "finished" ? "ex: Farine Extra Fine 10kg" : "ex: Cartons Triplex Larges"}
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-800 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-955 dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Quantité Initiale */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Stock Initial</label>
+                <input
+                  type="number"
+                  step={newItemType === "raw" ? "0.1" : "1"}
+                  required
+                  placeholder="ex: 0"
+                  value={newItemQuantity}
+                  onChange={(e) => setNewItemQuantity(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-805 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-955 dark:text-white font-mono"
+                />
+              </div>
+
+              {/* Unit used */}
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Unité de mesure</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="ex: Tonnes, Cartons, pcs, Kg"
+                  value={newItemUnit}
+                  onChange={(e) => setNewItemUnit(e.target.value)}
+                  className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-808 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-955 dark:text-white"
+                />
+              </div>
+
+              {/* Threshold only for Consumables */}
+              {newItemType === "consumable" && (
+                <div>
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Seuil critique d'alerte rupture</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="ex: 100"
+                    value={newItemThreshold}
+                    onChange={(e) => setNewItemThreshold(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-neutral-805 border border-gray-100 dark:border-neutral-800 rounded-xl text-xs text-gray-955 dark:text-white font-mono"
+                  />
+                  <p className="text-[10px] text-red-500/85 mt-1">L'application lèvera une alerte rouge dès que le stock descend sous ce seuil.</p>
+                </div>
+              )}
+
+              {/* Error and Success status notifications */}
+              {newProductSuccess && (
+                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-450 text-xs font-bold rounded-xl">
+                  ✓ {newProductSuccess}
+                </div>
+              )}
+
+              {newProductError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-700 dark:text-red-400 text-xs font-bold rounded-xl font-sans">
+                  ⚠️ {newProductError}
+                </div>
+              )}
+
+              <div className="pt-4 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewItemName("");
+                    setNewItemQuantity("");
+                    setNewProductSuccess(null);
+                    setNewProductError(null);
+                  }}
+                  className="px-4 py-2 hover:bg-gray-200 dark:hover:bg-neutral-800 bg-gray-100 dark:bg-neutral-850 text-gray-700 text-xs font-bold rounded-xl transition cursor-pointer"
+                >
+                  Effacer
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-md"
+                >
+                  Ajouter au dépôt
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {/* Section visualisant la liste actuelle des produits */}
+          <div className="pt-6 border-t border-gray-100 dark:border-neutral-800/80 space-y-3">
+            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider">État actuel des articles au dépôt</h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="bg-gray-50 dark:bg-neutral-800/10 p-3 rounded-xl border border-gray-100 dark:border-neutral-800">
+                <span className="font-bold text-indigo-700 dark:text-indigo-400 block mb-2">Matières Premières ({data.stocks.rawMaterials.length})</span>
+                <ul className="space-y-1 divide-y divide-gray-55 dark:divide-neutral-800/40">
+                  {data.stocks.rawMaterials.map((rm) => (
+                    <li key={rm.id} className="pt-1 flex justify-between">
+                      <span className="text-gray-700 dark:text-neutral-300">{rm.name} <span className="text-[10px] text-gray-400 font-mono">({rm.id})</span></span>
+                      <span className="font-mono font-bold text-gray-900 dark:text-white">{rm.tonnage.toFixed(1)} {rm.unit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-neutral-800/10 p-3 rounded-xl border border-gray-100 dark:border-neutral-800">
+                <span className="font-bold text-emerald-700 dark:text-emerald-400 block mb-2">Produits Finis ({data.stocks.finishedProducts.length})</span>
+                <ul className="space-y-1 divide-y divide-gray-55 dark:divide-neutral-800/40">
+                  {data.stocks.finishedProducts.map((fp) => (
+                    <li key={fp.id} className="pt-1 flex justify-between">
+                      <span className="text-gray-700 dark:text-neutral-300">{fp.name} <span className="text-[10px] text-gray-400 font-mono">({fp.id})</span></span>
+                      <span className="font-mono font-bold text-gray-900 dark:text-white">{fp.quantity.toLocaleString()} {fp.unit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-neutral-800/10 p-3 rounded-xl border border-gray-100 dark:border-neutral-800">
+                <span className="font-bold text-amber-700 dark:text-amber-400 block mb-2">Consommables d'Usine ({data.stocks.consumables.length})</span>
+                <ul className="space-y-1 divide-y divide-gray-55 dark:divide-neutral-800/40">
+                  {data.stocks.consumables.map((co) => (
+                    <li key={co.id} className="pt-1 flex justify-between">
+                      <span className="text-gray-700 dark:text-neutral-300">{co.name} <span className="text-[10px] text-gray-400 font-mono">({co.id})</span></span>
+                      <span className="font-mono font-bold text-gray-900 dark:text-white">{co.quantity.toLocaleString()} {co.unit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

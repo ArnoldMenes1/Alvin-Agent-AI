@@ -22,7 +22,9 @@ export default function EmployeeSubHeader({ role, userName, userEmail, dbState }
   const profileRole = employee?.role || (isManager ? "Gérant Général & Administrateur Principal" : "Collaborateur Externe");
   const profileEmail = employee?.email || userEmail || "contact@alvinagro.com";
   const profilePhone = employee?.phone || "+243 812 300 000";
-  const profilePhoto = employee?.photo || "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=300&auto=format&fit=crop";
+  const profilePhoto = employee?.photo || (isManager 
+    ? "https://plus.unsplash.com/premium_photo-1682096252599-e8536cd97d2b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8amV1bmUlMjBob21tZXxlbnwwfHwwfHx8MA%3D%3D"
+    : "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=300&auto=format&fit=crop");
   const profileStatus = employee?.status || "Présent";
   const profileId = employee?.id || (isManager ? "DIR-001" : "OPER-999");
   const profileSalary = employee?.salary || (isManager ? "N/A" : "450");
