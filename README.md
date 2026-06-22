@@ -8,6 +8,7 @@
   </div>
 
   <h1>💜 ALVIN AGRO-INDUSTRIEL ERP</h1>
+   <h1>REALISE PAR ARNOLD MENEMENE</h1>
   <p><strong>Système Intégré de Gestion de Nouvelle Génération piloté par Agent Intelligent</strong></p>
 
   <!-- Badges de technologies -->
