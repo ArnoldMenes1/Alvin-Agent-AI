@@ -308,6 +308,7 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
                     <option value="En Mission">En Mission</option>
                     <option value="Congé">Congés</option>
                     <option value="Absent">Absents</option>
+                    <option value="Licencié">Licenciés (Renvoyés)</option>
                   </select>
                 </div>
 
@@ -391,6 +392,7 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
                             emp.status === "Présent" ? "bg-emerald-500"
                               : emp.status === "En Mission" ? "bg-cyan-500"
                               : emp.status === "Congé" ? "bg-amber-500"
+                              : emp.status === "Licencié" ? "bg-black dark:bg-neutral-600"
                               : "bg-red-500"
                           }`} />
                         </div>
@@ -704,6 +706,7 @@ export default function PosteRH({ data, onUpdate, darkMode }: PosteRHProps) {
                         <option value="En Mission">En Mission</option>
                         <option value="Congé">Congé</option>
                         <option value="Absent">Absent</option>
+                        <option value="Licencié">Licencié</option>
                       </select>
                     </div>
                   </div>

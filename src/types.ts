@@ -16,7 +16,7 @@ export interface Employee {
   email: string;
   phone: string;
   salary: string;
-  status: "Présent" | "En Mission" | "Congé" | "Absent";
+  status: "Présent" | "En Mission" | "Congé" | "Absent" | "Licencié";
   photo: string;
   salaryHistory: SalaryRecord[];
   attendance: string[]; // dates de présence
